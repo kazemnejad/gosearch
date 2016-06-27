@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <title>GoScrape</title>
+    <link rel="stylesheet" type="text/css" href="semantic/dist/semantic.min.css">
+    <script src="js/jquery.js"></script>
+    <script src="semantic/dist/semantic.min.js"></script>
+
+    <script language="JavaScript">
+
+        var flaglike = true;
+        function like(result) {
+            var oldclassname = document.getElementById(result.id + "h");
+            console.log(result.id);
+            if (flaglike == true) {
+                oldclassname.className = "like icon active";
+                flaglike = false;
+            }
+            else {
+                oldclassname.className = "like icon";
+                flaglike = true;
+            }
+        }
+
+        var flagfav = true;
+        function fav(result) {
+            var oldclassname = document.getElementById(result.id + "s");
+            console.log(result.id);
+            if (flagfav == true) {
+                oldclassname.className = "star icon active";
+                flagfav = false;
+            }
+            else {
+                oldclassname.className = "star icon";
+                flagfav = true;
+            }
+        }
+
+        var flag0 = true;
+        function advance() {
+            if (flag0 == true) {
+                flag0 = false;
+                var div1 = document.createElement("div");
+                div1.id = "container1";
+                div1.className = "ui one column stackable center aligned page grid";
+                div1.style = "padding-top: 5%";
+                var div1indiv = document.createElement("div");
+                div1indiv.onclick = addInput1;
+                div1indiv.className = "ui green button";
+                div1indiv.tabIndex = "0";
+                div1indiv.textContent = "AND";
+                div1.appendChild(div1indiv);
+                var advance = document.getElementById("advance");
+                advance.appendChild(div1);
+
+                var div2 = document.createElement("div");
+                div2.id = "container2";
+                div2.className = "ui one column stackable center aligned page grid";
+                div2.style = "padding-top: 1%";
+                var div2indiv = document.createElement("div");
+                div2indiv.onclick = addInput2;
+                div2indiv.className = "ui red button";
+                div2indiv.tabIndex = "0";
+                div2indiv.textContent = "NOT";
+                div2.appendChild(div2indiv);
+                var advance = document.getElementById("advance");
+                advance.appendChild(div2);
+
+                var div3 = document.createElement("div");
+                div3.id = "container3";
+                div3.className = "ui one column stackable center aligned page grid";
+                div3.style = "padding-top: 1%";
+                var div3indiv = document.createElement("div");
+                div3indiv.onclick = addInput3;
+                div3indiv.className = "ui yellow button";
+                div3indiv.tabIndex = "0";
+                div3indiv.textContent = "OR";
+                div3.appendChild(div3indiv);
+                var advance = document.getElementById("advance");
+                advance.appendChild(div3);
+                $("#advance").hide();
+            }
+            $("#advance").transition('fade down');
+        }
+
+        var flag1 = true;
+        function addInput1() {
+            if (flag1 == true) {
+                flag1 = false;
+                var container = document.getElementById("container1");
+                var input = document.createElement("input");
+                var div = document.createElement("div");
+                input.type = "text";
+                input.id = "and-input";
+                div.className = "ui input";
+                div.appendChild(input);
+                container.appendChild(div);
+            }
+        }
+
+        var flag2 = true;
+        function addInput2() {
+            if (flag2 == true) {
+                flag2 = false;
+                var container = document.getElementById("container2");
+                var input = document.createElement("input");
+                var div = document.createElement("div");
+                input.type = "text";
+                input.id = "not-input";
+                div.className = "ui input";
+                div.appendChild(input);
+                container.appendChild(div);
+            }
+        }
+
+        var flag3 = true;
+        function addInput3() {
+            if (flag3 == true) {
+                flag3 = false;
+                var container = document.getElementById("container3");
+                var input = document.createElement("input");
+                var div = document.createElement("div");
+                input.type = "text";
+                input.id = "or-input";
+                div.className = "ui input";
+                div.appendChild(input);
+                container.appendChild(div);
+            }
+        }
+
+        var ischild = false;
+        function onSearchDataReceived(data, status) {
+            var resultcon = document.getElementById("resultcon");
+
+            var loadcon = document.getElementById("loadcon");
+
+            var loader = document.createElement("div");
+            loader.className = "ui active centered large inline loader";
+
+            loadcon.removeChild(loadcon.firstChild);
+
+            if (resultcon.childElementCount > 0) {
+                while (resultcon.firstChild) {
+                    resultcon.removeChild(resultcon.firstChild);
+                }
+            }
+
+            data.items.forEach(function (result, index) {
+                var div0 = document.createElement("div");
+                div0.className = "ui one stackable cards";
+
+                var div1 = document.createElement("div");
+                div1.className = "card fluid";
+
+                var div2 = document.createElement("div");
+                div2.className = "content";
+
+                var title = document.createElement("a");
+                title.className = "header";
+                title.style = "color: #4183c4";
+                title.textContent = result.full_name;
+                title.href = result.url;
+
+                var heart = document.createElement("i");
+                heart.className = "like icon";
+                heart.style = "float: right";
+                heart.id = result.id + "h";
+                heart.onclick = function () {
+                    like(result);
+                };
+
+                var star = document.createElement("i");
+                star.className = "star icon";
+                star.style = "float: right";
+                star.id = result.id + "s";
+                star.onclick = function () {
+                    fav(result);
+                };
+
+                var addr = document.createElement("a");
+                addr.className = "meta";
+                addr.style = "color: #0ea432";
+                addr.textContent = result.url;
+                addr.href = result.url;
+
+                var div3 = document.createElement("div");
+                div3.className = "description";
+
+                var par = document.createElement("p");
+                par.className = "descreption";
+                par.textContent = result.description;
+
+                div3.appendChild(par);
+                div2.appendChild(title);
+                div2.appendChild(star);
+                div2.appendChild(heart);
+                div2.appendChild(addr);
+                div2.appendChild(div3);
+                div1.appendChild(div2);
+                div0.appendChild(div1);
+
+                resultcon.appendChild(div0);
+                ischild = true;
+
+                if (index == data.items.length - 1) {
+                    index = data.items.length;
+                    if (index > 10) {
+
+                        var pagdiv = document.createElement("div");
+                        pagdiv.className = "ui pagination menu";
+                        pagdiv.style = "margin-left: 30%; margin-right: 30%; margin-top: 3%; margin-bottom: 3%";
+
+                        var la = document.createElement("a");
+                        la.className = "icon item";
+                        var li = document.createElement("i");
+                        li.className = "left arrow icon";
+                        la.appendChild(li);
+                        pagdiv.appendChild(la);
+
+                        for (var i = 0; i < index / 10; i++) {
+                            var ia = document.createElement("a");
+                            ia.className = "item";
+                            ia.textContent = i + 1;
+                            pagdiv.appendChild(ia);
+                        }
+
+                        var ra = document.createElement("a");
+                        ra.className = "icon item";
+                        var ri = document.createElement("i");
+                        ri.className = "right arrow icon";
+                        ra.appendChild(ri);
+                        pagdiv.appendChild(ra);
+
+                        resultcon.appendChild(pagdiv);
+
+                    }
+                }
+
+            });
+        }
+
+        function search() {
+            var keyword = document.getElementById("main-input").value;
+            if (keyword == "") {
+                return
+            }
+
+            var andword;
+            if (document.getElementById("and-input") == null) {
+                andword = "";
+            }
+            else {
+                andword = document.getElementById("and-input").value;
+            }
+            var notword;
+            if (document.getElementById("not-input") == null) {
+                notword = "";
+            }
+            else {
+                notword = document.getElementById("not-input").value;
+            }
+            var orword;
+            if (document.getElementById("or-input") == null) {
+                orword = "";
+            }
+            else {
+                orword = document.getElementById("or-input").value;
+            }
+
+            var loadcon = document.getElementById("loadcon");
+
+            var loader = document.createElement("div");
+            loader.className = "ui active centered large inline loader";
+
+            if (loadcon.childElementCount == 0) {
+                loadcon.appendChild(loader);
+            }
+
+            $.get("https://api.github.com/search/repositories", {
+                q: keyword
+                /*,qand: andword,
+                 qnot: notword,
+                 qor: orword*/
+            }, onSearchDataReceived);
+
+            $("#slider").slideUp();
+            if ($("#advance").is(":visible")) {
+                $("#advance").transition();
+            }
+        }
+
+        function onEnterButtonPressed(event) {
+            console.log("gog gogog");
+        }
+
+    </script>
+
+</head>
+
+<body>
+
+<div id="slider" style="height: 20%"></div>
+<div id="main" style="padding-left: 20%; padding-right: 20%; padding-top: 3%">
+    <div class="ui big fluid right labeled input">
+
+        <button onclick="advance()" class="ui button" type="button">
+            <i class="icon settings"></i>
+        </button>
+        <input id="main-input" type="text" placeholder="Search..." tabindex="1">
+        <button id="submitbtn" type="button" onclick="search()" class="ui button"
+                style="border-bottom-left-radius: 0%; border-top-left-radius: 0%">Search
+        </button>
+    </div>
+</div>
+
+<div id="advance" class="ui one column stackable center aligned page grid"></div>
+
+<div id="loadcon" class="ui items"></div>
+
+<div id="resultcon" class="ui items" style="padding-top: 3%; padding-left: 30%; padding-right: 30%"></div>
+
+</body>
+
+<script language="JavaScript">
+    document.getElementById("main-input")
+            .addEventListener("keyup", function (event) {
+                event.preventDefault();
+                if (event.keyCode == 13) {
+                    search();
+                }
+            });
+</script>
+
+</html>
