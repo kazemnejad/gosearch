@@ -32,7 +32,9 @@ class PythonSpider(scrapy.Spider):
             yield scrapy.Request(target, callback=lambda res: self.parse(res, response.url))
 
         article = Goose().extract(raw_html=response.body)
-
+        if response.url == 'https://docs.python.org/3/_sources/library/random.txt':
+            print article
+            input()
         yield {
             "url": response.url,
             "article": article

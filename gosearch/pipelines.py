@@ -1,21 +1,35 @@
 # -*- coding: utf-8 -*-
 
-# Define your item pipelines here
-#
-# Don't forget to add your pipeline to the ITEM_PIPELINES setting
-# See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 from abc import abstractmethod
 
 import re
 from collections import Counter
+from scrapy.exceptions import DropItem
 
+import nltk
 from stemming.porter2 import stem
+
+from gosearch.database.connection import db_session
+from gosearch.database.models import Page, Word, Index
 
 
 class GosearchPipeline(object):
     @abstractmethod
     def process_item(self, item, spider):
         return item
+
+
+class DuplicateCheckPipeline(GosearchPipeline):
+    def process_item(self, item, spider):
+        url = item["url"]
+        if self.is_page_exist(url):
+            raise DropItem("Duplicate page %s" % url)
+
+        return item
+
+    def is_page_exist(self, url):
+        page = Page.query.filter_by(url=url).first()
+        return page is not None
 
 
 class TextNormalizationPipeline(GosearchPipeline):
@@ -34,23 +48,59 @@ class TextNormalizationPipeline(GosearchPipeline):
             title[i] = stem(title[i])
         main = Counter(main)
         title = Counter(title)
+
         for i in title:
             title[i] *= 2
         main.update(title)
+        delWord = dict(nltk.pos_tag(main.keys()))
 
+        for i in delWord:
+            if delWord[i] == 'DT' or delWord[i] == 'IN' or delWord[i] == 'CC' or delWord[i] == 'TO':
+                del main[i]
         return {
             "url": url,
+            "title": article.title,
+            "content": article.cleaned_text,
             "words": main
         }
 
+
 class StorePipeline(GosearchPipeline):
     def process_item(self, item, spider):
-        words = item["words"]
         url = item["url"]
+        title = item["title"]
+        content = item["content"]
+        words = item["words"]
 
-        print words
-        print url
+        page = self.store_page(url, title, content)
 
+        for word_text in words:
+            score = words[word_text]
+            word = self.store_word_if_not_exist(word_text)
 
+            self.make_index(word, page, score)
 
+    def store_page(self, url, title, content):
+        page = Page(url, title, content)
 
+        db_session.add(page)
+        db_session.commit()
+
+        return page
+
+    def store_word_if_not_exist(self, text):
+        word = Word.query.filter_by(text=text).first()
+        if not word:
+            word = Word(text)
+
+            db_session.add(word)
+            db_session.commit()
+
+        return word
+
+    def make_index(self, word, page, score):
+        index = Index(score)
+        index.page = page
+        word.pages.append(index)
+
+        db_session.commit()
