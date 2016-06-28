@@ -60,11 +60,11 @@ CONCURRENT_REQUESTS_PER_DOMAIN=30
 
 # Configure item pipelines
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
-"""ITEM_PIPELINES = {
+ITEM_PIPELINES = {
     'gosearch.pipelines.DuplicateCheckPipeline': 200,
     'gosearch.pipelines.TextNormalizationPipeline': 300,
     'gosearch.pipelines.StorePipeline': 400,
-}"""
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See http://doc.scrapy.org/en/latest/topics/autothrottle.html
