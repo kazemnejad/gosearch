@@ -28,31 +28,35 @@ def get_db():
     return g.db
 
 
+def get_pages_for_word(word, cursor):
+    sql = '''SELECT pages.*, indexes.score, pages.*
+        FROM words
+        JOIN indexes on (words.id = indexes.word_id)
+        JOIN pages ON (indexes.page_id = pages.id)
+        WHERE words.text = "%s"
+        ORDER BY indexes.score DESC''' % conversion.MySQLConverter().escape(str(word))
+
+    cursor.execute(sql)
+    return cursor.fetchall()
+
+
 @app.route("/search", methods=["GET"])
 def search():
     query = request.args["q"]
-    sql = '''SELECT pages.*, indexes.score, pages.*
-    FROM words
-    JOIN indexes on (words.id = indexes.word_id)
-    JOIN pages ON (indexes.page_id = pages.id)
-    WHERE words.text = "%s"
-    ORDER BY indexes.score DESC''' % conversion.MySQLConverter().escape(str(query))
-
+    ands=[]
     cursor = get_db().cursor()
-    cursor.execute(sql)
-    data = cursor.fetchall()
-    cursor.close()
 
     items = []
-    for row in data:
+    for row in get_pages_for_word(query, cursor):
         items.append({
             "id": int(row[0]),
             "url": unicode(row[1].decode("utf-8")),
             "title": unicode(row[2].decode("utf-8")),
-            "content": unicode(row[3][:100].decode("utf-8")),
+            "content": unicode(row[3][:100].decode("utf-8")) + "...",
             "score": int(row[4])
         })
 
+    cursor.close()
     return jsonify({"items": items})
 
 
