@@ -130,4 +130,4 @@ class StorePipeline(GosearchPipeline):
             position.page = page
             word.ppages.append(position)
 
-            db_session.commit()
+        db_session.commit()
