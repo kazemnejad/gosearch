@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+"""
 from abc import abstractmethod
 
 import re
@@ -103,4 +103,4 @@ class StorePipeline(GosearchPipeline):
         index.page = page
         word.pages.append(index)
 
-        db_session.commit()
+        db_session.commit()"""
