@@ -159,7 +159,7 @@
                 var title = document.createElement("a");
                 title.className = "header";
                 title.style = "color: #4183c4";
-                title.textContent = result.full_name;
+                title.textContent = result.title;
                 title.href = result.url;
 
                 var heart = document.createElement("i");
@@ -189,12 +189,12 @@
 
                 var par = document.createElement("p");
                 par.className = "descreption";
-                par.textContent = result.description;
+                par.textContent = result.content;
 
                 div3.appendChild(par);
-                div2.appendChild(title);
                 div2.appendChild(star);
                 div2.appendChild(heart);
+                div2.appendChild(title);
                 div2.appendChild(addr);
                 div2.appendChild(div3);
                 div1.appendChild(div2);
@@ -277,7 +277,7 @@
                 loadcon.appendChild(loader);
             }
 
-            $.get("https://api.github.com/search/repositories", {
+            $.get("http://127.0.0.1:5000/search", {
                 q: keyword
                 /*,qand: andword,
                  qnot: notword,
