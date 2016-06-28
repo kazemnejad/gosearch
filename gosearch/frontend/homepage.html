@@ -277,21 +277,20 @@
                 loadcon.appendChild(loader);
             }
 
-            $.get("http://127.0.0.1:5000/search", {
-                q: keyword
-                /*,qand: andword,
-                 qnot: notword,
-                 qor: orword*/
-            }, onSearchDataReceived);
+            var data = {q: keyword};
+            if (andword != "")
+                    data.and = andword;
+            if (orword != "")
+                    data.or = orword;
+            if (notword != "")
+                    data.not = notword;
+
+            $.get("http://127.0.0.1:5000/search", data, onSearchDataReceived);
 
             $("#slider").slideUp();
             if ($("#advance").is(":visible")) {
                 $("#advance").transition();
             }
-        }
-
-        function onEnterButtonPressed(event) {
-            console.log("gog gogog");
         }
 
     </script>
