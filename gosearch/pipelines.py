@@ -46,17 +46,27 @@ class TextNormalizationPipeline(GosearchPipeline):
             main[i] = stem(main[i])
         for i in range(len(title)):
             title[i] = stem(title[i])
+        delWord = dict(nltk.pos_tag(main))
+        for i in delWord:
+            if delWord[i] == 'DT' or delWord[i] == 'IN' or delWord[i] == 'CC' or delWord[i] == 'TO':
+                del main[i]
+        delWord = dict(nltk.pos_tag(title))
+        for i in delWord:
+            if delWord[i] == 'DT' or delWord[i] == 'IN' or delWord[i] == 'CC' or delWord[i] == 'TO':
+                del title[i]
+        main_pos={}
+        for i in range(len(main)):
+            if main_pos.get(main[i],0) == 0:
+                main_pos[i] = [i]
+            else:
+                main_pos[main[i]].append(i)
         main = Counter(main)
         title = Counter(title)
 
         for i in title:
             title[i] *= 2
         main.update(title)
-        delWord = dict(nltk.pos_tag(main.keys()))
 
-        for i in delWord:
-            if delWord[i] == 'DT' or delWord[i] == 'IN' or delWord[i] == 'CC' or delWord[i] == 'TO':
-                del main[i]
         return {
             "url": url,
             "title": article.title,
