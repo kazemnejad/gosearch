@@ -10,7 +10,7 @@ import nltk
 from stemming.porter2 import stem
 
 from gosearch.database.connection import db_session
-from gosearch.database.models import Page, Word, Index
+from gosearch.database.models import Page, Word, Index, Position
 
 
 class GosearchPipeline(object):
@@ -22,8 +22,8 @@ class GosearchPipeline(object):
 class DuplicateCheckPipeline(GosearchPipeline):
     def process_item(self, item, spider):
         url = item["url"]
-        # if self.is_page_exist(url):
-        #     raise DropItem("Duplicate page %s" % url)
+        if self.is_page_exist(url):
+            raise DropItem("Duplicate page %s" % url)
 
         return item
 
@@ -58,9 +58,9 @@ class TextNormalizationPipeline(GosearchPipeline):
                 for j in range(title.count(i)):
                     title.remove(i)
         print len(title)
-        main_pos={}
+        main_pos = {}
         for i in range(len(main)):
-            if main_pos.get(main[i],0) == 0:
+            if main_pos.get(main[i], 0) == 0:
                 main_pos[main[i]] = [i]
             else:
                 main_pos[main[i]].append(i)
@@ -75,7 +75,8 @@ class TextNormalizationPipeline(GosearchPipeline):
             "url": url,
             "title": article.title,
             "content": article.cleaned_text,
-            "words": main
+            "words": main,
+            "wordspos": main_pos
         }
 
 
@@ -85,14 +86,18 @@ class StorePipeline(GosearchPipeline):
         title = item["title"]
         content = item["content"]
         words = item["words"]
+        words_pos = item["wordspos"]
 
-        # page = self.store_page(url, title, content)
-        #
-        # for word_text in words:
-        #     score = words[word_text]
-        #     word = self.store_word_if_not_exist(word_text)
-        #
-        #     self.make_index(word, page, score)
+
+        page = self.store_page(url, title, content)
+
+        for word_text in words:
+            score = words[word_text]
+            word = self.store_word_if_not_exist(word_text)
+
+            self.make_index(word, page, score)
+            if word_text in words_pos:
+                self.store_positions(word, page, words_pos[word_text])
 
     def store_page(self, url, title, content):
         page = Page(url, title, content)
@@ -118,3 +123,11 @@ class StorePipeline(GosearchPipeline):
         word.pages.append(index)
 
         db_session.commit()
+
+    def store_positions(self, word, page, positions):
+        for index in positions:
+            position = Position(index)
+            position.page = page
+            word.ppages.append(position)
+
+            db_session.commit()

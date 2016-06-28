@@ -43,7 +43,6 @@ def get_pages_for_word(word, cursor):
 @app.route("/search", methods=["GET"])
 def search():
     query = request.args["q"]
-    ands=[]
     cursor = get_db().cursor()
 
     items = []
