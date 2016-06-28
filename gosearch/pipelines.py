@@ -22,8 +22,8 @@ class GosearchPipeline(object):
 class DuplicateCheckPipeline(GosearchPipeline):
     def process_item(self, item, spider):
         url = item["url"]
-        if self.is_page_exist(url):
-            raise DropItem("Duplicate page %s" % url)
+        # if self.is_page_exist(url):
+        #     raise DropItem("Duplicate page %s" % url)
 
         return item
 
@@ -49,15 +49,19 @@ class TextNormalizationPipeline(GosearchPipeline):
         delWord = dict(nltk.pos_tag(main))
         for i in delWord:
             if delWord[i] == 'DT' or delWord[i] == 'IN' or delWord[i] == 'CC' or delWord[i] == 'TO':
-                del main[i]
+                for j in range(main.count(i)):
+                    main.remove(i)
+
         delWord = dict(nltk.pos_tag(title))
         for i in delWord:
             if delWord[i] == 'DT' or delWord[i] == 'IN' or delWord[i] == 'CC' or delWord[i] == 'TO':
-                del title[i]
+                for j in range(title.count(i)):
+                    title.remove(i)
+        print len(title)
         main_pos={}
         for i in range(len(main)):
             if main_pos.get(main[i],0) == 0:
-                main_pos[i] = [i]
+                main_pos[main[i]] = [i]
             else:
                 main_pos[main[i]].append(i)
         main = Counter(main)
@@ -82,13 +86,13 @@ class StorePipeline(GosearchPipeline):
         content = item["content"]
         words = item["words"]
 
-        page = self.store_page(url, title, content)
-
-        for word_text in words:
-            score = words[word_text]
-            word = self.store_word_if_not_exist(word_text)
-
-            self.make_index(word, page, score)
+        # page = self.store_page(url, title, content)
+        #
+        # for word_text in words:
+        #     score = words[word_text]
+        #     word = self.store_word_if_not_exist(word_text)
+        #
+        #     self.make_index(word, page, score)
 
     def store_page(self, url, title, content):
         page = Page(url, title, content)
