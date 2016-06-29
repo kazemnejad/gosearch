@@ -7,6 +7,7 @@ from flask_cors import CORS
 
 from gosearch.database import config
 from gosearch.database.connection import db_session
+from gosearch.searchengine import SearchEngine
 
 app = Flask(__name__)
 app.debug = True
@@ -43,19 +44,18 @@ def get_pages_for_word(word, cursor):
 @app.route("/search", methods=["GET"])
 def search():
     query = request.args["q"]
-    cursor = get_db().cursor()
+    se = SearchEngine(get_db(), query, "", "", "")
 
     items = []
-    for row in get_pages_for_word(query, cursor):
+    for row in se.search():
         items.append({
             "id": int(row[0]),
             "url": unicode(row[1].decode("utf-8")),
             "title": unicode(row[2].decode("utf-8")),
-            "content": unicode(row[3][:100].decode("utf-8")) + "...",
+            "content": unicode(row[3].decode("utf-8"))[:100],
             "score": int(row[4])
         })
 
-    cursor.close()
     return jsonify({"items": items})
 
 
