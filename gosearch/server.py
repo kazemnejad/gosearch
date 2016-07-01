@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 from mysql.connector import MySQLConnection, conversion
-from sqlalchemy import text
 
-from flask import Flask, jsonify, render_template, request, g
+from flask import Flask, jsonify, request, g
 from flask_cors import CORS
 
 from gosearch.database import config
-from gosearch.database.connection import db_session
 from gosearch.searchengine import SearchEngine
 
 app = Flask(__name__)
@@ -52,7 +50,7 @@ def search():
             "id": int(row[0]),
             "url": unicode(row[1].decode("utf-8")),
             "title": unicode(row[2].decode("utf-8")),
-            "content": unicode(row[3].decode("utf-8"))[:100],
+            "content": unicode(row[3].decode("utf-8"))[:300],
             "score": int(row[4])
         })
 
@@ -67,4 +65,4 @@ def close_db(error):
 
 def run():
     global app
-    app.run()
+    app.run(threaded=True)
