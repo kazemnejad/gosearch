@@ -242,7 +242,7 @@ class SearchEngine(object):
 
     def _apply_positions(self, result, words):
         i = 0
-        while i + 1 < len(self.query):
+        while i + 1 < len(words):
             word_id = self.word_ids.get(words[i])
             next_word_id = self.word_ids.get(words[i + 1])
 
