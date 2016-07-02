@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
-from mysql.connector import MySQLConnection, conversion
+import json
+from mysql.connector import MySQLConnection
 
-from flask import Flask, jsonify, request, g
+from flask import Flask, request, g, Response
 from flask_cors import CORS
+from redis import StrictRedis
 
 from gosearch.database import config
-from gosearch.searchengine import SearchEngine
+from gosearch.searchengine import SearchEngine, SuperListJsonEncoder
 
 app = Flask(__name__)
 app.debug = True
@@ -27,34 +29,25 @@ def get_db():
     return g.db
 
 
-def get_pages_for_word(word, cursor):
-    sql = '''SELECT pages.*, indexes.score, pages.*
-        FROM words
-        JOIN indexes on (words.id = indexes.word_id)
-        JOIN pages ON (indexes.page_id = pages.id)
-        WHERE words.text = "%s"
-        ORDER BY indexes.score DESC''' % conversion.MySQLConverter().escape(str(word))
-
-    cursor.execute(sql)
-    return cursor.fetchall()
-
-
 @app.route("/search", methods=["GET"])
 def search():
     query = request.args["q"]
-    se = SearchEngine(get_db(), query, "", "", "")
+    ands = request.args["and"] if "and" in request.args else ""
+    ors = request.args["or"] if "or" in request.args else ""
+    nots = request.args["not"] if "not" in request.args else ""
 
-    items = []
-    for row in se.search():
-        items.append({
-            "id": int(row[0]),
-            "url": unicode(row[1].decode("utf-8")),
-            "title": unicode(row[2].decode("utf-8")),
-            "content": unicode(row[3].decode("utf-8"))[:300],
-            "score": int(row[4])
-        })
+    redis = StrictRedis(host="localhost")
+    json_data = redis.get(query)
 
-    return jsonify({"items": items})
+    if json_data is None:
+        se = SearchEngine(get_db(), query, ands, nots, ors)
+
+        json_data = json.dumps({"items": se.search()}, cls=SuperListJsonEncoder)
+        redis.set(query, json_data)
+
+    return Response(response=json_data,
+                    status=200,
+                    mimetype="application/json")
 
 
 @app.teardown_appcontext

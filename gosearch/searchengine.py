@@ -1,7 +1,8 @@
+import re
+from json import JSONEncoder
 from mysql.connector import conversion
 from mysql.connector.constants import FieldType
-import re
-from mysql.connector.cursor import MySQLCursor, MySQLCursorDict
+from mysql.connector.cursor import MySQLCursorDict
 
 import nltk
 from stemming.porter2 import stem
@@ -128,6 +129,20 @@ class SuperList(object):
 
     def __repr__(self):
         return repr(self.data)
+
+
+class SuperListJsonEncoder(JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, SuperList):
+            return {
+                "id": int(obj[0]),
+                "url": unicode(obj[1].decode("utf-8")),
+                "title": unicode(obj[2].decode("utf-8")),
+                "content": unicode(obj[3].decode("utf-8"))[:300],
+                "score": int(obj[4])
+            }
+
+        return JSONEncoder.default(self, obj)
 
 
 class superset(object):
