@@ -122,6 +122,7 @@ class SuperList(object):
         return str(self.data)
 
     def __repr__(self):
+        # return "(" + self[0] + ", " + self[2] + ", " + self[-1] + ")"
         return repr(self.data)
 
 
@@ -164,10 +165,11 @@ class SearchEngine(object):
         self.cursor = self.db.cursor(cursor_class=SuperCursor)
         self.cursor.set_callback_provider(self.callback_provider)
 
-        self.query = self._normalize_query(query)
         self.word_ids = {}
 
-        self.ands = self._normalize_query(ands)
+        self.query = self._normalize_query(query)
+
+        self.ands = self.query + self._normalize_query(ands)
         self.is_and_enabled = len(self.ands) > 0
 
         self.nots = self._normalize_query(nots)
@@ -221,14 +223,10 @@ class SearchEngine(object):
         return self.cursor.fetchall()
 
     def search(self):
-        if self.is_and_enabled:
-            pass
-
-        if len(self.query) == 1 and not self.is_and_enabled and not self.is_not_enabled and not self.is_or_enabled:
-            return self.get_pages_for_word(self.query[0])
-
-        result = self._raw_query_search(self.query)
-        self._apply_positions(result, self.query)
+        # result = self._raw_query_search(self.query)
+        result = self._advance_search()
+        if len(self.query) > 0:
+            self._apply_positions(result, self.query)
 
         result.sort(key=lambda x: x[-1], reverse=True)
 
@@ -250,6 +248,9 @@ class SearchEngine(object):
             i += 1
 
     def _raw_query_search(self, query):
+        if len(query) == 1:
+            return self.get_pages_for_word(self.query[0])
+
         word_results = []
         for word in query:
             word_results.append(self.get_pages_for_word(word))
@@ -308,31 +309,32 @@ class SearchEngine(object):
     def _summarize_scores_on_insert(self, other):
         self.data[-1] = self[-1] + other[-1]
         return self
+
     def _advance_search(self):
         result = self._raw_query_search(self.ands)
+
         not_word_results = []
         for word in self.nots:
             not_word_results.append(self.get_pages_for_word(word))
-        # bayad supelist beshan
-        for tupel in range(len(result)):
-            for not_tupels in not_word_results:
-                if result[tupel] in not_tupels:
-                    del result[tupel]
-                    break
+
+        for not_word_result in not_word_results:
+            for not_word in not_word_result:
+                try:
+                    result.remove(not_word)
+                except:
+                    pass
+
         or_word_results = []
         for word in self.ors:
             or_word_results.append(self.get_pages_for_word(word))
-        #bayad super list beshan
-        for tupels in result[0]:
-            for tupel in range(len(tupels)):
-                flag = 0
-                for or_tupels in or_word_results:
-                    if tupels[tupel] in or_tupels:
-                        flag += 1
-                        continue
-                if flag == 0:
-                    del result[0][tupel]
-                else:
-                    result[0][tupel][-1] += flag*10
-        return result
 
+        if len(or_word_results) > 0:
+            for page in result:
+                flag = 0
+                for or_result in or_word_results:
+                    if page in or_result:
+                        flag += 1
+
+                page[-1] += flag * 10
+
+        return result
