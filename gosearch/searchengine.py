@@ -84,12 +84,6 @@ class SuperCursor(MySQLCursorDict):
         return SuperList(result, self.callback_provider)
 
     def _row_to_python(self, rowdata, desc=None):
-        # row = self._connection.converter.row_to_python(rowdata, desc)
-        # if row:
-        #     print self.column_names
-        #     print row
-        #     return dict(zip(self.column_names, row))
-
         return self._row_to_list(rowdata, desc)
 
 
