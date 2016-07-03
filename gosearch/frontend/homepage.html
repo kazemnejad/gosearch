@@ -160,7 +160,8 @@
             }
 
             var p = document.createElement("p");
-            p.textContent = "beshash tush";
+            elapsedTime = (data.elapsed_time / 1000).toString() + "s";
+            p.textContent = elapsedTime;
             p.style = "font-size: 85%; color: grey; padding-left: 3%; padding-bottom: 1%;";
             resultcon.appendChild(p);
 
@@ -222,7 +223,8 @@
                 ischild = true;
 
                 if (index == data.items.length - 1) {
-                    index = data.items.length;
+                    index = data.total_count;
+                    console.log(index);
                     if (index > 10) {
 
                         var pagdiv = document.createElement("div");
@@ -314,13 +316,15 @@
                 loadcon.appendChild(loader);
             }
 
-            var data = {q: keyword};
+            var data = {q: keyword, page: pnum};
             if (andword != "")
                     data.and = andword;
             if (orword != "")
                     data.or = orword;
             if (notword != "")
                     data.not = notword;
+
+
 
             $.get("http://127.0.0.1:5000/search", data, onSearchDataReceived);
 
