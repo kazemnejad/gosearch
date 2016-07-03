@@ -60,20 +60,19 @@ def search():
     cache_result = redis.get(key)
 
     items = cPickle.loads(cache_result) if cache_result else None
-    if items is None:
-        print "not Using cache"
+    if not items:
         items = SearchEngine(get_db(), query, ands, nots, ors) \
             .search()
 
         # store results in cache
         redis.set(key, cPickle.dumps(items))
-    else:
-        print "using cache"
 
     elapsed_time = (time.time() - start) * 1000
 
     items_count = len(items)
     pages_count = items_count // 10
+    if pages_count < items_count / 10.0:
+        pages_count += 1
 
     if page > pages_count:
         page = pages_count
@@ -85,9 +84,9 @@ def search():
     last_item_index = (page * 10) + 10
 
     json_data = json.dumps({
-        "items": items[page * 10: last_item_index + 1 if last_item_index < items_count else items_count],
+        "items": items[page * 10: last_item_index if last_item_index < items_count else items_count],
         "total_count": items_count,
-        "elapsed_time": elapsed_time
+        "elapsed_time": int(elapsed_time)
     }, cls=SuperListJsonEncoder)
 
     return Response(response=json_data,
