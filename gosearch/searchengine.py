@@ -84,12 +84,6 @@ class SuperCursor(MySQLCursorDict):
         return SuperList(result, self.callback_provider)
 
     def _row_to_python(self, rowdata, desc=None):
-        # row = self._connection.converter.row_to_python(rowdata, desc)
-        # if row:
-        #     print self.column_names
-        #     print row
-        #     return dict(zip(self.column_names, row))
-
         return self._row_to_list(rowdata, desc)
 
 
@@ -314,3 +308,31 @@ class SearchEngine(object):
     def _summarize_scores_on_insert(self, other):
         self.data[-1] = self[-1] + other[-1]
         return self
+    def _advance_search(self):
+        result = self._raw_query_search(self.ands)
+        not_word_results = []
+        for word in self.nots:
+            not_word_results.append(self.get_pages_for_word(word))
+        # bayad supelist beshan
+        for tupel in range(len(result)):
+            for not_tupels in not_word_results:
+                if result[tupel] in not_tupels:
+                    del result[tupel]
+                    break
+        or_word_results = []
+        for word in self.ors:
+            or_word_results.append(self.get_pages_for_word(word))
+        #bayad super list beshan
+        for tupels in result[0]:
+            for tupel in range(len(tupels)):
+                flag = 0
+                for or_tupels in or_word_results:
+                    if tupels[tupel] in or_tupels:
+                        flag += 1
+                        continue
+                if flag == 0:
+                    del result[0][tupel]
+                else:
+                    result[0][tupel][-1] += flag*10
+        return result
+
