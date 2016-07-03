@@ -7,6 +7,7 @@ from collections import Counter
 from scrapy.exceptions import DropItem
 
 import nltk
+from goose import Goose
 from stemming.porter2 import stem
 
 from gosearch.database.connection import db_session
@@ -25,7 +26,10 @@ class DuplicateCheckPipeline(GosearchPipeline):
         if self.is_page_exist(url):
             raise DropItem("Duplicate page %s" % url)
 
-        return item
+        return {
+            "url": url,
+            "article": Goose().extract(raw_html=item["article"])
+        }
 
     def is_page_exist(self, url):
         page = Page.query.filter_by(url=url).first()
@@ -87,7 +91,6 @@ class StorePipeline(GosearchPipeline):
         content = item["content"]
         words = item["words"]
         words_pos = item["wordspos"]
-
 
         page = self.store_page(url, title, content)
 

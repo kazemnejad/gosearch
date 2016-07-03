@@ -31,52 +31,57 @@ class PythonSpider(scrapy.Spider):
                 continue
             yield scrapy.Request(target, callback=lambda res: self.parse(res, response.url))
 
-        article = Goose().extract(raw_html=response.body)
+        # article = Goose().extract(raw_html=response.body)
 
         yield {
             "url": response.url,
-            "article": article
+            "article": response.body
         }
+
+
 class StackSpider(scrapy.Spider):
     name = "stack"
     start_urls = ["http://stackoverflow.com/questions/tagged/python"]
     allowed_domains = ["stackoverflow.com"]
+
     def parse(self, response):
         questionlink = response.xpath('//a[@class="question-hyperlink"]/@href').extract()
 
         if len(questionlink) == 0:
             return
         for i in questionlink:
-            question_url="http://stackoverflow.com"+i
-            yield scrapy.Request(question_url,callback=self.extractquestion)
-        if  ("page" in response.url):
-            page_url,page_num=response.url.split("?page=")
-            page_url+="?page="+str(int(page_num)+1)
+            question_url = "http://stackoverflow.com" + i
+            yield scrapy.Request(question_url, callback=self.extractquestion)
+        if ("page" in response.url):
+            page_url, page_num = response.url.split("?page=")
+            page_url += "?page=" + str(int(page_num) + 1)
 
-            yield scrapy.Request(page_url,callback=self.parse)
+            yield scrapy.Request(page_url, callback=self.parse)
         else:
-            yield scrapy.Request(response.url+"?page=2",callback=self.parse)
+            yield scrapy.Request(response.url + "?page=2", callback=self.parse)
 
-    def extractquestion(self,response):
-        article = Goose().extract(raw_html=response.body)
+    def extractquestion(self, response):
+        # article = Goose().extract(raw_html=response.body)
         yield {
             "url": response.url,
-            "article": article
+            "article": response.body
         }
+
 
 class tutorialspointSpider(scrapy.Spider):
     name = "tutorialspoint"
     start_urls = ["http://www.tutorialspoint.com/python/index.htm"]
     allowed_domains = ["tutorialspoint.com"]
+
     def parse(self, response):
         url = response.xpath('//a/@href').extract()
 
         for i in url:
             if "python" in i:
-                yield scrapy.Request("http://www.tutorialspoint.com"+i,callback=self.parse)
+                yield scrapy.Request("http://www.tutorialspoint.com" + i, callback=self.parse)
 
-        article=Goose().extract(raw_html=response.body)
-        yield{
-             "url": response.url,
-             "article": article
+        # article = Goose().extract(raw_html=response.body)
+        yield {
+            "url": response.url,
+            "article": response.body
         }
