@@ -249,7 +249,7 @@
                             var ia = document.createElement("a");
                             ia.className = "item";
                             ia.textContent = i + 1;
-                            ia.id = "pageBtn" + (i + 1).toString();
+                            ia.id = i + 1;
                             ia.onclick = (function (x) {
                                 return function () {
                                     pagenum(x + 1);
@@ -278,6 +278,9 @@
                 }
 
             });
+
+            updatePageIndicator();
+
         }
 
         function search() {
@@ -333,6 +336,19 @@
             if ($("#advance").is(":visible")) {
                 $("#advance").transition();
             }
+        }
+
+        function updatePageIndicator() {
+            // update old ones
+            var pagination = document.getElementById("pagdiv").children;
+            for (var j = 0; j < pagination.length; j++) {
+                pagination[j].style = "background-color: white";
+            }
+
+            // update selected
+            var spage = document.getElementById(pnum);
+            spage.style = "background-color: #3b56af; color: white;";
+
         }
 
     </script>
