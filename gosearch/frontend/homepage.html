@@ -229,6 +229,7 @@
                     if (index > 10) {
 
                         var pagdiv = document.createElement("div");
+                        pagdiv.id = "pagdiv";
                         pagdiv.className = "ui pagination menu";
                         pagdiv.style = "margin-left: 30%; margin-right: 30%; margin-top: 3%; margin-bottom: 3%";
 
@@ -338,6 +339,11 @@
             }
         }
 
+        function searchFromSearchBar() {
+            pnum = 1;
+            search();
+        }
+
         function updatePageIndicator() {
             // update old ones
             var pagination = document.getElementById("pagdiv").children;
@@ -367,7 +373,7 @@
             <i class="icon settings"></i>
         </button>
         <input id="main-input" type="text" placeholder="Search..." tabindex="1">
-        <button id="submitbtn" type="button" onclick="search()" class="ui button"
+        <button id="submitbtn" type="button" onclick="searchFromSearchBar()" class="ui button"
                 style="border-bottom-left-radius: 0%; border-top-left-radius: 0%">Search
         </button>
     </div>
@@ -386,7 +392,7 @@
             .addEventListener("keyup", function (event) {
                 event.preventDefault();
                 if (event.keyCode == 13) {
-                    search();
+                    searchFromSearchBar();
                 }
             });
 </script>
