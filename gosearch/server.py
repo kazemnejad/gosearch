@@ -2,6 +2,9 @@
 import json
 from mysql.connector import MySQLConnection
 
+import cPickle
+
+import time
 from flask import Flask, request, g, Response
 from flask_cors import CORS
 from redis import StrictRedis
@@ -36,14 +39,56 @@ def search():
     ors = request.args["or"] if "or" in request.args else ""
     nots = request.args["not"] if "not" in request.args else ""
 
+    try:
+        page = int(request.args["page"])
+    except:
+        page = 1
+
+    # cache server
     redis = StrictRedis(host="localhost")
-    json_data = redis.get(query)
 
-    if json_data is None:
-        se = SearchEngine(get_db(), query, ands, nots, ors)
+    # start measuring elapsed time
+    start = time.time()
 
-        json_data = json.dumps({"items": se.search()}, cls=SuperListJsonEncoder)
-        redis.set(query, json_data)
+    # try to load result from cache
+    key = json.dumps({
+        "q": query,
+        "a": ands,
+        "o": ors,
+        "n": nots
+    })
+    cache_result = redis.get(key)
+
+    items = cPickle.loads(cache_result) if cache_result else None
+    if items is None:
+        print "not Using cache"
+        items = SearchEngine(get_db(), query, ands, nots, ors) \
+            .search()
+
+        # store results in cache
+        redis.set(key, cPickle.dumps(items))
+    else:
+        print "using cache"
+
+    elapsed_time = (time.time() - start) * 1000
+
+    items_count = len(items)
+    pages_count = items_count // 10
+
+    if page > pages_count:
+        page = pages_count
+
+    # convert to index based
+    page -= 1
+
+    # calculate last item within this page
+    last_item_index = (page * 10) + 10
+
+    json_data = json.dumps({
+        "items": items[page * 10: last_item_index + 1 if last_item_index < items_count else items_count],
+        "total_count": items_count,
+        "elapsed_time": elapsed_time
+    }, cls=SuperListJsonEncoder)
 
     return Response(response=json_data,
                     status=200,
