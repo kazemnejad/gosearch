@@ -28,7 +28,7 @@ class DuplicateCheckPipeline(GosearchPipeline):
 
         return {
             "url": url,
-            "article": Goose().extract(raw_html=item["article"])
+            "body": item["article"]
         }
 
     def is_page_exist(self, url):
@@ -36,13 +36,32 @@ class DuplicateCheckPipeline(GosearchPipeline):
         return page is not None
 
 
+class GooseContentExtractionPipeline(GosearchPipeline):
+    def process_item(self, item, spider):
+        url = item["url"]
+        response_body = item["body"]
+
+        self.article = Goose().extract(raw_html=response_body)
+
+        return {
+            "url": url,
+            "title": self.extract_title(),
+            "content": self.extract_content()
+        }
+
+    def extract_title(self):
+        return self.article.title
+
+    def extract_content(self):
+        return self.article.cleaned_text
+
+
 class TextNormalizationPipeline(GosearchPipeline):
     def process_item(self, item, spider):
         url = item["url"]
-        article = item["article"]
+        title = item["title"]
+        main = item["content"]
 
-        title = article.title
-        main = article.cleaned_text
         title = re.findall(r'[A-Za-z0-9]\w*', title.lower())
         main = re.findall(r'[A-Za-z0-9]\w*', main.lower())
 
@@ -61,24 +80,27 @@ class TextNormalizationPipeline(GosearchPipeline):
             if delWord[i] == 'DT' or delWord[i] == 'IN' or delWord[i] == 'CC' or delWord[i] == 'TO':
                 for j in range(title.count(i)):
                     title.remove(i)
-
+        new_main = main + title
         main_pos = {}
-        for i in range(len(main)):
-            if main_pos.get(main[i], 0) == 0:
-                main_pos[main[i]] = [i]
+        for i in range(len(new_main)):
+            if main_pos.get(new_main[i], 0) == 0:
+                main_pos[new_main[i]] = [i]
             else:
-                main_pos[main[i]].append(i)
+                main_pos[new_main[i]].append(i)
         main = Counter(main)
         title = Counter(title)
 
         for i in title:
             title[i] *= 2
+        for i in title:
+            title[i] = max(title[i], main.get(i, 0)) * 2 + min(title[i], main.get(i, 0))
+            main[i] = 0
         main.update(title)
 
         return {
             "url": url,
-            "title": article.title,
-            "content": article.cleaned_text,
+            "title": item["title"],
+            "content": item["content"],
             "words": main,
             "wordspos": main_pos
         }

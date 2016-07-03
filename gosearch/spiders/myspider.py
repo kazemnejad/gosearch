@@ -1,10 +1,5 @@
-import scrapy
 import re
-from scrapy.http import HtmlResponse
-
-from goose import Goose
-from stemming.porter2 import stem
-from collections import Counter
+import scrapy
 
 
 class PythonSpider(scrapy.Spider):
