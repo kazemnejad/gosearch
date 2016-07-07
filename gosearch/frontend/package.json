@@ -1,4 +1,8 @@
 {
-  "name": "helloworld",
-  "main": "homepage.html"
+  "name": "gosearch",
+  "main": "homepage.html",
+  "window": {
+    "min_width": 1280,
+    "min_height": 720
+  }
 }

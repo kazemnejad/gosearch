@@ -80,6 +80,7 @@ class TextNormalizationPipeline(GosearchPipeline):
             if delWord[i] == 'DT' or delWord[i] == 'IN' or delWord[i] == 'CC' or delWord[i] == 'TO':
                 for j in range(title.count(i)):
                     title.remove(i)
+
         new_main = main + title
         main_pos = {}
         for i in range(len(new_main)):

@@ -1,8 +1,9 @@
 from mysql.connector import MySQLConnection
+import requests
 from threading import Thread, Lock
 
 from gosearch.database import config
-from gosearch.pipelines import TextNormalizationPipeline
+from gosearch.pipelines import TextNormalizationPipeline, GooseContentExtractionPipeline
 
 import logging
 
@@ -58,8 +59,14 @@ class FixerThread(Thread):
         return pos
 
     def add_position(self, word_id, page_id, position):
+        FixerThread.log("adding position:" + str(position))
         sql = 'insert into positions (id, word_id, page_id, indexx) VALUES (NULL, %d , %d, %d)' \
               % (word_id, page_id, position)
+
+        self.cursor.execute(sql)
+
+    def add_word(self, text):
+        sql = 'insert into words (id, text) VALUES (NULL, "%s")' % text
 
         self.cursor.execute(sql)
 
@@ -69,10 +76,12 @@ class FixerThread(Thread):
         self.cursor.execute(sql)
         return self.cursor.fetchall()
 
-    def save_positions(self, word, page, positions):
+    def save_positions(self, word, page, positions, word_text):
         for index in positions:
             pos = self.get_position(word[0], page[0], index)
             if not pos:
+                FixerThread.log("adding position for: " + str(page[2]))
+                FixerThread.log("adding position word: " + word_text)
                 self.add_position(word[0], page[0], index)
 
     def process_result(self, result, page):
@@ -82,10 +91,14 @@ class FixerThread(Thread):
         for word_text in words:
             score = words[word_text]
             word = self.get_word(word_text)
+            if not word:
+                FixerThread.log("adding word: " + word)
+                self.add_word(word_text)
+                word = self.get_word(word_text)
 
             self.update_index(word, page, score)
             if word_text in words_pos:
-                self.save_positions(word, page, words_pos[word_text])
+                self.save_positions(word, page, words_pos[word_text], word_text)
 
     @staticmethod
     def log(msg):
@@ -107,13 +120,15 @@ class FixerThread(Thread):
 
 
 if __name__ == "__main__":
+
     lst = [
-        FixerThread(0, 1000),
-        FixerThread(1001, 2000),
-        FixerThread(2001, 3000),
-        FixerThread(3001, 4000),
-        FixerThread(4001, 5000),
-        FixerThread(5001, 6000),
+        FixerThread(3001, 3100),
+        FixerThread(3101, 3200),
+        FixerThread(3201, 3300),
+        FixerThread(3301, 3400),
+        FixerThread(3401, 3500),
+        FixerThread(3501, 3600),
+        FixerThread(3601, 4000)
     ]
 
     for thread in lst:

@@ -102,9 +102,6 @@ class SuperList(object):
 
     def __eq__(self, other):
         answer = self[self.unique_index] == other[self.unique_index]
-        # if answer and self.result is not None:
-        #     data = SuperTuple(self.data[:-1] + tuple([self[-1] + other[-1]]), None)
-        #     self.result.add(data)
 
         callback = self.on_equal_callback_provider.get()
         if answer and callback is not None:
@@ -122,7 +119,6 @@ class SuperList(object):
         return str(self.data)
 
     def __repr__(self):
-        # return "(" + self[0] + ", " + self[2] + ", " + self[-1] + ")"
         return repr(self.data)
 
 
@@ -223,7 +219,6 @@ class SearchEngine(object):
         return self.cursor.fetchall()
 
     def search(self):
-        # result = self._raw_query_search(self.query)
         result = self._advance_search()
         if len(self.query) > 0:
             self._apply_positions(result, self.query)

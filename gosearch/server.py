@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
+import cPickle
 import json
+import time
 from mysql.connector import MySQLConnection
 
-import cPickle
-
-import time
 from flask import Flask, request, g, Response
 from flask_cors import CORS
 from redis import StrictRedis
